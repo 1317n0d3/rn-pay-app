@@ -1,0 +1,17 @@
+Firebase
+	Users
+		Auth
+	Transactions
+		CardFrom
+		CardTo
+		Date
+		Value
+	Cards
+		Number
+		Type
+			MasterCard
+			Visa
+		User
+		Balance
+
+1 card - 1 user

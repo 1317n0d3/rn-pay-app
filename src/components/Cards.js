@@ -32,9 +32,6 @@ const Cards = ({ cards, setActiveCard }) => {
   const { user } = useAuth();
   const [newCards, setNewCards] = useState(cards);
 
-  console.log(user.uid);
-  console.log(cards);
-
   useEffect(() => {
     if (cards.length > 0) {
       setNewCards(cards);

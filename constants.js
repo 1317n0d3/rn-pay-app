@@ -30,4 +30,16 @@ export const styles = {
     backgroundColor: "#fff",
     borderRadius: 10,
   },
+
+  transactionCard: {
+    backgroundColor: "#2C2C2C",
+    margin: 12,
+    padding: 14,
+    borderRadius: 20,
+  },
+
+  transactionCardText: {
+    color: "#fff",
+    fontWeight: 600,
+  },
 };

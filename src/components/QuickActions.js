@@ -8,6 +8,7 @@ import {
   query,
   where,
   updateDoc,
+  increment,
 } from "@firebase/firestore";
 import React, { useState } from "react";
 import { Text, TouchableHighlight, View } from "react-native";
@@ -20,7 +21,11 @@ import { db } from "../utils/firebase";
 const QuickActions = ({ activeCard }) => {
   const [transActive, setTransActive] = useState(false),
     [money, setMoney] = useState(0),
-    [cardTo, setCardTo] = useState("");
+    [cardTo, setCardTo] = useState(""),
+    [showHistory, setShowHistory] = useState(false),
+    [userTransactions, setUserTransactions] = useState([]);
+
+  console.log(activeCard);
 
   const makeTransaction = async () => {
     const collectionRef = collection(db, "transactions");
@@ -34,27 +39,64 @@ const QuickActions = ({ activeCard }) => {
     try {
       await addDoc(collectionRef, payload);
       const cardsRef = doc(db, "cards", cardTo);
+      const activeCardRef = doc(db, "cards", activeCard);
       const cardToRef = collection(db, "cards");
 
-      const q = query(cardToRef, where("number", "==", cardTo));
+      const q = query(cardToRef, where("number", "==", activeCard));
 
-      let moneyCard = 0;
+      console.log(q);
 
-      onSnapshot(q, (snapshot) => {
-        // console.log(
-        moneyCard = snapshot.docs.map((doc) => ({
-          ...doc.data(),
-        }))[0].balance;
-        // );
+      // let moneyCard = 0;
+
+      // await onSnapshot(q, (snapshot) => {
+      // console.log(
+      // moneyCard = snapshot.docs.map((doc) => ({
+      //   ...doc.data(),
+      // }))[0].balance;
+      // );
+
+      // snapshot.docs.forEach((doc) => {
+      //   moneyCard = doc.data().balance;
+      // });
+      // });
+
+      // await updateDoc(cardsRef, {
+      //   balance: Number(moneyCard) + Number(money),
+      // });
+
+      await updateDoc(cardsRef, {
+        balance: increment(money),
       });
 
-      console.log(moneyCard);
-
-      updateDoc(cardsRef, {
-        balance: Number(moneyCard) + Number(money),
+      await updateDoc(activeCardRef, {
+        balance: increment(-money),
       });
 
       // alert("✅ Transaction completed!");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const loadTransaction = async () => {
+    try {
+      const collectionRef = collection(db, "transactions");
+
+      const q = query(collectionRef, where("card_from", "==", activeCard));
+
+      await onSnapshot(q, (snapshot) => {
+        console.log(
+          snapshot.docs.map((doc) => ({
+            ...doc.data(),
+          }))
+        );
+
+        const transactions = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+        }));
+
+        setUserTransactions(transactions);
+      });
     } catch (error) {
       console.log(error);
     }
@@ -79,12 +121,21 @@ const QuickActions = ({ activeCard }) => {
           placeholder="Money"
         />
         <Button
-          onPress={() => makeTransaction()}
+          onPress={() => {
+            makeTransaction();
+            setTransActive(false);
+          }}
           title="Send money"
           color={"#000"}
         />
       </View>
-      <View style={{ ...styles.flexDefault, justifyContent: "space-around" }}>
+      <View
+        style={{
+          ...styles.flexDefault,
+          justifyContent: "space-around",
+          marginTop: 12,
+        }}
+      >
         <TouchableHighlight
           underlayColor={colors.ACCENT}
           style={{
@@ -127,7 +178,10 @@ const QuickActions = ({ activeCard }) => {
             height: 160,
             backgroundColor: "#2C2C2C",
           }}
-          onPress={() => makeTransaction(610)}
+          onPress={() => {
+            setShowHistory(!showHistory);
+            loadTransaction();
+          }}
         >
           <View style={{ alignItems: "center" }}>
             <Icon name="user" size={35} color="#fff" />
@@ -157,6 +211,25 @@ const QuickActions = ({ activeCard }) => {
             </Text> */}
           </View>
         </TouchableHighlight>
+      </View>
+
+      <View style={{ display: showHistory ? "flex" : "none" }}>
+        <Text style={{ color: "#fff", fontSize: 18 }}>History</Text>
+
+        {userTransactions
+          .map((v, i) => (
+            <View key={i} style={styles.transactionCard}>
+              <Text style={styles.transactionCardText}>
+                From: {v.card_from}
+              </Text>
+              <Text style={styles.transactionCardText}>To: {v.card_to}</Text>
+              <Text style={styles.transactionCardText}>Money: {v.value}</Text>
+              {/* <Text>
+              Time: {new Date(1970, 0, 1).setSeconds(v.created_at.seconds)}
+            </Text> */}
+            </View>
+          ))
+          .reverse()}
       </View>
     </View>
   );

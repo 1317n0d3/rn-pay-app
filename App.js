@@ -20,14 +20,11 @@ export default function App() {
 
   useEffect(() => {
     if (user && user.uid) {
-      console.log(user.uid);
       const collectionRef = collection(db, "cards");
       const q = query(collectionRef, where("user_id", "==", user.uid));
 
       const unSub = () => {
         onSnapshot(q, (snapshot) => {
-          console.log(snapshot, "wedf");
-
           setCards(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
         });
       };

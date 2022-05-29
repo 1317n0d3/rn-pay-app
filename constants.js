@@ -27,8 +27,10 @@ export const styles = {
     margin: 12,
     borderWidth: 1,
     padding: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.BG_GRAY,
+    borderColor: colors.ACCENT,
     borderRadius: 10,
+    color: "#fff",
   },
 
   transactionCard: {
@@ -40,6 +42,6 @@ export const styles = {
 
   transactionCardText: {
     color: "#fff",
-    fontWeight: 600,
+    fontWeight: "600",
   },
 };

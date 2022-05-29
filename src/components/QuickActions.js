@@ -18,16 +18,18 @@ import { colors, styles } from "../../constants";
 import { useAuth } from "../useAuth";
 import { db } from "../utils/firebase";
 
-const QuickActions = ({ activeCard }) => {
+const QuickActions = ({ activeCard, balance }) => {
   const [transActive, setTransActive] = useState(false),
     [money, setMoney] = useState(0),
     [cardTo, setCardTo] = useState(""),
     [showHistory, setShowHistory] = useState(false),
-    [userTransactions, setUserTransactions] = useState([]);
+    [userTransactions, setUserTransactions] = useState([]),
+    [userTransactionsIn, setUserTransactionsIn] = useState([]),
+    [showTransactionIn, setShowTransactionIn] = useState(false);
 
   console.log(activeCard);
 
-  const makeTransaction = async () => {
+  const makeTransaction = async (money, cardTo) => {
     const collectionRef = collection(db, "transactions");
     const payload = {
       card_from: activeCard,
@@ -102,6 +104,55 @@ const QuickActions = ({ activeCard }) => {
     }
   };
 
+  const loadTransactionIn = async () => {
+    try {
+      const collectionRef = collection(db, "transactions");
+
+      const q = query(collectionRef, where("card_to", "==", activeCard));
+
+      await onSnapshot(q, (snapshot) => {
+        console.log(
+          snapshot.docs.map((doc) => ({
+            ...doc.data(),
+          }))
+        );
+
+        const transactions = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+        }));
+
+        setUserTransactionsIn(transactions);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const parseUserTransactions = (transactions) => {
+    return transactions
+      .map((v, i) => (
+        <TouchableHighlight
+          key={i}
+          style={styles.transactionCard}
+          onPress={() => {
+            setMoney(v.value);
+            showTransactionIn ? setCardTo(v.card_to) : setCardTo(v.card_from);
+            setTransActive(true);
+          }}
+        >
+          <View>
+            <Text style={styles.transactionCardText}>From: {v.card_from}</Text>
+            <Text style={styles.transactionCardText}>To: {v.card_to}</Text>
+            <Text style={styles.transactionCardText}>Money: {v.value}</Text>
+            {/* <Text>
+              Time: {new Date(1970, 0, 1).setSeconds(v.created_at.seconds)}
+            </Text> */}
+          </View>
+        </TouchableHighlight>
+      ))
+      .reverse();
+  };
+
   return (
     <View>
       <View style={{ display: transActive ? "flex" : "none" }}>
@@ -122,11 +173,12 @@ const QuickActions = ({ activeCard }) => {
         />
         <Button
           onPress={() => {
-            makeTransaction();
-            setTransActive(false);
+            makeTransaction(money, cardTo);
+            setTransActive(!transActive);
           }}
           title="Send money"
-          color={"#000"}
+          color={"#289256"}
+          disabled={balance < money}
         />
       </View>
       <View
@@ -181,6 +233,7 @@ const QuickActions = ({ activeCard }) => {
           onPress={() => {
             setShowHistory(!showHistory);
             loadTransaction();
+            loadTransactionIn();
           }}
         >
           <View style={{ alignItems: "center" }}>
@@ -214,22 +267,17 @@ const QuickActions = ({ activeCard }) => {
       </View>
 
       <View style={{ display: showHistory ? "flex" : "none" }}>
+        <Button
+          onPress={() => {
+            setShowTransactionIn(!showTransactionIn);
+          }}
+          title="Switch"
+          color={"#289256"}
+        />
         <Text style={{ color: "#fff", fontSize: 18 }}>History</Text>
-
-        {userTransactions
-          .map((v, i) => (
-            <View key={i} style={styles.transactionCard}>
-              <Text style={styles.transactionCardText}>
-                From: {v.card_from}
-              </Text>
-              <Text style={styles.transactionCardText}>To: {v.card_to}</Text>
-              <Text style={styles.transactionCardText}>Money: {v.value}</Text>
-              {/* <Text>
-              Time: {new Date(1970, 0, 1).setSeconds(v.created_at.seconds)}
-            </Text> */}
-            </View>
-          ))
-          .reverse()}
+        {showTransactionIn
+          ? parseUserTransactions(userTransactions)
+          : parseUserTransactions(userTransactionsIn)}
       </View>
     </View>
   );

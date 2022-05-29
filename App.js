@@ -16,7 +16,8 @@ export default function App() {
   const { isLoggedIn, user } = useAuth();
 
   const [cards, setCards] = useState([]);
-  const [activeCard, setActiveCard] = useState("");
+  const [activeCard, setActiveCard] = useState(""),
+    [balance, setBalance] = useState(0);
 
   useEffect(() => {
     if (user && user.uid) {
@@ -50,8 +51,12 @@ export default function App() {
             <>
               <Header />
               <Cards cards={cards} setActiveCard={setActiveCard} />
-              <Balance cards={cards} />
-              <QuickActions activeCard={activeCard} />
+              <Balance
+                cards={cards}
+                activeCard={activeCard}
+                setBalance={setBalance}
+              />
+              <QuickActions activeCard={activeCard} balance={balance} />
               <Logout />
               {/* <Footer /> */}
             </>

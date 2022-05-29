@@ -60,7 +60,7 @@ const Cards = ({ cards, setActiveCard }) => {
             top: idx === 1 ? 14 : idx === 2 ? 33 : 0,
             left: idx === 1 ? 5 : idx === 2 ? 5 : 0,
             width: "100%",
-            height: 170,
+            height: 190,
             zIndex: idx === 1 ? 2 : idx === 2 ? 1 : 3,
             shadowColor: "black",
             transform: [
@@ -121,7 +121,7 @@ const Cards = ({ cards, setActiveCard }) => {
           setActiveCard(newCards[1].number);
         }}
       >
-        <Text style={{ color: "white", marginTop: 15 }}>Поменять карту</Text>
+        <Text style={{ color: "white", marginTop: 15 }}>Switch card</Text>
       </TouchableOpacity>
     </View>
   );
